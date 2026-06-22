@@ -1,3 +1,4 @@
+## ZBIC
 
 This project provides a Python package that supports compression and decompression of the ZBIC algorithm that was first seen on the Nintendo Switch in version 22.0.0.
 
@@ -21,3 +22,6 @@ compressed = zbic.compress(data)
 decompressed = zbic.decompress(compressed)
 assert compressed == decompressed
 ```
+
+### Source code
+https://github.com/kinnay/zbic
