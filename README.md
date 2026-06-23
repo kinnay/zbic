@@ -20,7 +20,7 @@ import zbic
 data = b"Hello World!"
 compressed = zbic.compress(data)
 decompressed = zbic.decompress(compressed)
-assert compressed == decompressed
+assert data == decompressed
 ```
 
 ### Source code
