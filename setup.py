@@ -5,13 +5,18 @@ description = \
 	"ZBIC compression algorithm of Nintendo Switch."
 
 this_directory = os.path.dirname(__file__)
+# NOTE: This is a workaround for all the weird path issues when compiling on Windows.
+#		Relative paths aren't working either.
+if os.environ.get("GITHUB_WORKSPACE"):
+	this_directory = os.environ["GITHUB_WORKSPACE"]
+
 with open(os.path.join(this_directory, "README.md"), "r") as file:
 	long_description = file.read()
 
 extensions = [setuptools.Extension(
 	name = "zbic",
-	sources = ["src/module.c", "src/zstd.c"],
-    include_dirs = ["src"],
+	sources = [os.path.join(this_directory, "src", "module.c"), os.path.join(this_directory, "src", "zstd.c")],
+    include_dirs = [os.path.join(this_directory, "src")],
 	define_macros = [("ZSTD_ZBIC_SUPPORT", "1")]
 )]
 
