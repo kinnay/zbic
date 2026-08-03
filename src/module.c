@@ -125,11 +125,11 @@ PyModuleDef ZBICModule = {
     ZBICSlots
 };
 
-PyMODINIT_FUNC PyInit_zbic() {
+PyMODINIT_FUNC PyInit_zbic(void) {
 	return PyModuleDef_Init(&ZBICModule);
 }
 #else
-PyMODINIT_FUNC initzbic() {
+PyMODINIT_FUNC initzbic(void) {
     PyObject *module = Py_InitModule("zbic", ZBICMethods);
     if (module == NULL) {
         return;
