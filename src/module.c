@@ -87,6 +87,13 @@ PyObject *ZBIC_decompress(PyObject *self, PyObject *args) {
 	return bytes;
 }
 
+PyMethodDef ZBICMethods[] = {
+	{"compress", ZBIC_compress, METH_VARARGS, NULL},
+	{"decompress", ZBIC_decompress, METH_VARARGS, NULL},
+	{NULL, NULL, 0, NULL}
+};
+
+#if PY_MAJOR_VERSION >= 3
 int ZBIC_module_exec(PyObject *m) {
     if (ZBICError != NULL) {
         PyErr_SetString(
@@ -102,12 +109,6 @@ int ZBIC_module_exec(PyObject *m) {
 
     return 0;
 }
-
-PyMethodDef ZBICMethods[] = {
-	{"compress", ZBIC_compress, METH_VARARGS, NULL},
-	{"decompress", ZBIC_decompress, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
-};
 
 PyModuleDef_Slot ZBICSlots[] = {
     {Py_mod_exec, ZBIC_module_exec},
@@ -127,3 +128,15 @@ PyModuleDef ZBICModule = {
 PyMODINIT_FUNC PyInit_zbic() {
 	return PyModuleDef_Init(&ZBICModule);
 }
+#else
+PyMODINIT_FUNC initzbic() {
+    PyObject *module = Py_InitModule("zbic", ZBICMethods);
+    if (module == NULL) {
+        return;
+    }
+
+    ZBICError = PyErr_NewException("zbic.error", NULL, NULL);
+    Py_IncRef(ZBICError);
+    PyModule_AddObject(module, "error", ZBICError);
+}
+#endif
