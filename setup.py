@@ -1,13 +1,12 @@
-
-from pathlib import Path
-
+import os
 import setuptools
 
 description = \
 	"ZBIC compression algorithm of Nintendo Switch."
 
-this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+this_directory = os.path.dirname(__file__)
+with open(os.path.join(this_directory, "README.md"), "r") as file:
+	long_description = file.read()
 
 extensions = [setuptools.Extension(
 	name = "zbic",
