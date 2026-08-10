@@ -4,11 +4,12 @@ import setuptools
 description = \
 	"ZBIC compression algorithm of Nintendo Switch."
 
-this_directory = os.path.dirname(__file__)
-# NOTE: This is a workaround for all the weird path issues when compiling on Windows.
-#		Relative paths aren't working either.
 if os.environ.get("GITHUB_WORKSPACE"):
+  # This is a workaround for the GitHub actions build on Windows.
+  # Relative paths aren't working.
 	this_directory = os.environ["GITHUB_WORKSPACE"]
+else:
+  this_directory = os.path.dirname(__file__)
 
 with open(os.path.join(this_directory, "README.md"), "r") as file:
 	long_description = file.read()
