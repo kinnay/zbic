@@ -7,6 +7,11 @@
 
 #include "zstd.h"
 
+#if PY_MAJOR_VERSION >= 3
+#define RO_BUFFER_FMT "y#"
+#else
+#define RO_BUFFER_FMT "t#"
+#endif
 
 static PyObject *ZBICError = NULL;
 
@@ -19,7 +24,7 @@ PyObject *ZBIC_compress(PyObject *self, PyObject *args) {
 	const uint8_t *in;
 	size_t inlen;
     int level = 3;
-	if (!PyArg_ParseTuple(args, "y#|i", &in, &inlen, &level)) {
+	if (!PyArg_ParseTuple(args, RO_BUFFER_FMT"|i", &in, &inlen, &level)) {
 		return NULL;
 	}
 
@@ -50,7 +55,7 @@ PyObject *ZBIC_compress(PyObject *self, PyObject *args) {
 PyObject *ZBIC_decompress(PyObject *self, PyObject *args) {
 	const uint8_t *in;
 	size_t inlen;
-	if (!PyArg_ParseTuple(args, "y#", &in, &inlen)) {
+	if (!PyArg_ParseTuple(args, RO_BUFFER_FMT, &in, &inlen)) {
 		return NULL;
 	}
 
