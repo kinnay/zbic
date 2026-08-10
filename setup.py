@@ -24,7 +24,7 @@ extensions = [setuptools.Extension(
 
 setuptools.setup(
     name = "zbic",
-    version = "1.0.0.post1",
+    version = "1.0.1",
     description = description,
     long_description = long_description,
     long_description_content_type = "text/markdown",
