@@ -1,0 +1,128 @@
+on:
+  push:
+
+jobs:
+  build:
+    name: Build distribution
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["2.7", "3.x"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      
+      - name: Set up Python2.7 (Windows)
+        if: matrix.os == 'windows-latest' && matrix.python-version == '2.7'
+        run: |
+          Invoke-WebRequest -Uri "https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi" -OutFile "$env:RUNNER_TEMP\python2.7.18.amd64.msi"
+          Start-Process -FilePath "$env:RUNNER_TEMP\python2.7.18.amd64.msi" -Wait -ArgumentList "/passive /norestart ADDLOCAL=ALL"
+          New-Item -Path $profile -ItemType "File" -Force
+          echo "Set-Alias -Name python2 -Value C:\Python27\python.exe" >> $profile
+      
+      - name: Set up Visual C++ (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: mlocati/setup-msvc@ade6aff3df872d66c12a63dcacdddf0041cb2693
+      
+      - name: Add suid for tar to workaround write permission issues (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7'
+        run: sudo chmod u+s /usr/bin/tar
+        
+      - name: Set up Python2.7 from cache (Linux)
+        id: python2-cache
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7'
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            /etc/alternatives/python2
+            /usr/lib/python2.7
+            /usr/local/lib/python2.7
+            /usr/include/python2.7
+            /usr/local/include/python2.7
+            /usr/bin/python2*
+            /usr/local/bin/python2*
+          key: ${{ matrix.os }}-python2.7
+      
+      - name: Remove suid for tar (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7'
+        run: sudo chmod u-s /usr/bin/tar
+      
+      - name: Compile Python2.7 (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7' && steps.python2-cache.outputs.cache-hit != 'true'
+        uses: luyanci/setup-python2@2f5277cf52691fec0116a052242c5e81bef0d18a
+
+      - name: Install pip2.7 (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7' && steps.python2-cache.outputs.cache-hit != 'true'
+        run: |
+          wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+          sudo python2 ./get-pip.py
+          rm ./get-pip.py
+    
+      - name: Cache Python2.7 (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '2.7' && steps.python2-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            /etc/alternatives/python2
+            /usr/lib/python2.7
+            /usr/local/lib/python2.7
+            /usr/include/python2.7
+            /usr/local/include/python2.7
+            /usr/bin/python2*
+            /usr/local/bin/python2*
+          key: ${{ matrix.os }}-python2.7
+    
+      - name: Set up Python3
+        if: matrix.python-version != '2.7'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "${{ matrix.python-version }}"
+      
+      - name: Install pypa/build
+        if: matrix.python-version != '2.7'
+        run: python3 -m pip install build --user
+
+      - name: Update packages
+        if: matrix.python-version == '2.7'
+        run: python2 -m pip install --upgrade setuptools pip wheel
+      
+      - name: Build a binary wheel and a source tarball (py3)
+        if: matrix.python-version != '2.7'
+        run: python3 -m build
+
+      - name: Build a binary wheel (py2)
+        if: matrix.python-version == '2.7'
+        run: python2 ./setup.py bdist_wheel
+        env:
+          DISTUTILS_USE_SDK: "1"
+          MSSdk: "1"
+      
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-package-${{ matrix.os }}-${{ matrix.python-version }}
+          path: dist/
+
+  publish-to-pypi:
+    name: Publish distribution to PyPI
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/zbic
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all dists
+        uses: actions/download-artifact@v8
+        with:
+          pattern: python-package-*
+          merge-multiple: true
+          path: dist/
+      
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
