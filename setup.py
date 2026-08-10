@@ -5,19 +5,21 @@ import setuptools
 description = \
     "ZBIC compression algorithm of Nintendo Switch."
 
-if os.environ.get("GITHUB_WORKSPACE"):
-    # This is a workaround for the GitHub actions build on Windows.
-    # Relative paths aren't working.
-    this_directory = os.environ["GITHUB_WORKSPACE"]
-else:
-    this_directory = os.path.dirname(__file__)
+this_directory = os.path.dirname(__file__)
 
 with open(os.path.join(this_directory, "README.md"), "r") as file:
     long_description = file.read()
 
 extensions = [setuptools.Extension(
     name = "zbic",
-    sources = [os.path.join(this_directory, "src", "module.c"), os.path.join(this_directory, "src", "zstd.c")],
+    sources = [
+        os.path.join(this_directory, "src", "module.c"),
+        os.path.join(this_directory, "src", "zstd.c")
+    ],
+    depends = [
+        os.path.join(this_directory, "src", "zstd.h"),
+        os.path.join(this_directory, "src", "zstd_errors.h"),
+    ],
     include_dirs = [os.path.join(this_directory, "src")],
     define_macros = [("ZSTD_ZBIC_SUPPORT", "1")]
 )]
