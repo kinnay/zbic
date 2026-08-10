@@ -43,7 +43,7 @@ jobs:
     name: Publish distribution to PyPI
     if: ${{ inputs.run_optional_job }}
     needs:
-      - build
+      - build_wheels
     runs-on: ubuntu-latest
     environment:
       name: pypi
