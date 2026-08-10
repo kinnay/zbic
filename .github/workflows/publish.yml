@@ -39,6 +39,58 @@ jobs:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
   
+  build_wheels_py2:
+    name: Build Python2 wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python2.7 (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Invoke-WebRequest -Uri "https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi" -OutFile "$env:RUNNER_TEMP\python2.7.18.amd64.msi"
+          Start-Process -FilePath "$env:RUNNER_TEMP\python2.7.18.amd64.msi" -Wait -ArgumentList "/passive /norestart ADDLOCAL=ALL"
+          New-Item -Path $profile -ItemType "File" -Force
+          echo "Set-Alias -Name python2 -Value C:\Python27\python.exe" >> $profile
+      
+      - name: Set up Visual C++ (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: mlocati/setup-msvc@ade6aff3df872d66c12a63dcacdddf0041cb2693
+      
+      - name: Update packages (Windows)
+        if: matrix.os == 'windows-latest'
+        run: python2 -m pip install --upgrade setuptools pip wheel
+      
+      - name: Build wheel (Windows)
+        if: matrix.os == 'windows-latest'
+        run: python2 ./setup.py bdist_wheel
+        env:
+          DISTUTILS_USE_SDK: "1"
+          MSSdk: "1"
+      
+      - name: Build wheel (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          docker run --rm -v ./:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c '''
+            yum install -y python-devel
+            curl -L -o - https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2 -
+            cd io
+            python2 ./setup.py bdist_wheel
+            mv dist prep
+            auditwheel repair -w dist prep/*.whl
+          '''
+      
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: cibw-wheels-py2-${{ matrix.os }}
+          path: dist/
+  
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
@@ -60,6 +112,7 @@ jobs:
     if: ${{ inputs.publish_pypi }}
     needs:
       - build_wheels
+      - build_wheels_py2
       - build_sdist
     runs-on: ubuntu-latest
     environment:
