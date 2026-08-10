@@ -12,21 +12,15 @@ with open(os.path.join(this_directory, "README.md"), "r") as file:
 
 extensions = [setuptools.Extension(
     name = "zbic",
-    sources = [
-        os.path.join(this_directory, "src", "module.c"),
-        os.path.join(this_directory, "src", "zstd.c")
-    ],
-    depends = [
-        os.path.join(this_directory, "src", "zstd.h"),
-        os.path.join(this_directory, "src", "zstd_errors.h"),
-    ],
-    include_dirs = [os.path.join(this_directory, "src")],
+    sources = ["src/module.c", "src/zstd.c"],
+    depends = ["src/zstd.h", "src/zstd_errors.h"],
+    include_dirs = ["src"],
     define_macros = [("ZSTD_ZBIC_SUPPORT", "1")]
 )]
 
 setuptools.setup(
     name = "zbic",
-    version = "1.0.1",
+    version = "1.0.1.post1",
     description = description,
     long_description = long_description,
     long_description_content_type = "text/markdown",

@@ -55,7 +55,7 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
   
-  publish-to-pypi:
+  publish_to_pypi:
     name: Publish distribution to PyPI
     if: ${{ inputs.publish_pypi }}
     needs:
