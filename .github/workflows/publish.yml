@@ -57,7 +57,7 @@ jobs:
   
   publish-to-pypi:
     name: Publish distribution to PyPI
-    if: ${{ inputs.run_optional_job }}
+    if: ${{ inputs.publish_pypi }}
     needs:
       - build_wheels
       - build_sdist
