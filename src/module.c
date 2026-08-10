@@ -103,7 +103,8 @@ int ZBIC_module_exec(PyObject *m) {
     }
 
     ZBICError = PyErr_NewException("zbic.error", NULL, NULL);
-    if (PyModule_AddObjectRef(m, "error", ZBICError) < 0) {
+    if (PyModule_AddObject(m, "error", ZBICError) < 0) {
+        Py_XDECREF(ZBICError);
         return -1;
     }
 
